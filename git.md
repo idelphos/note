@@ -155,11 +155,6 @@ git help <verb>
 git <verb> --help
 man git-<verb>
 
-
-
-
-
-
 ```
 
 ## 提交文件
@@ -293,6 +288,96 @@ git push origin master     # 之后,用这个命令把本地 master 分支的最
 git clone git@github.com:michaelliao/gitskills.git # 将远程库克隆到本地
 
 ```
+
+
+
+# git 常用命令速查
+
+## 创建新版本
+
+```shell
+git clone <url>
+git init
+```
+
+## 提交与修改
+
+```shell
+git status              #查看状态,是否有变更
+git diff                #查看具体变更内容
+git add .               #跟踪所有改动过的文件
+git add <file>          
+git mv <old> <new>
+git rm <file>
+git rm --cached <file>  #停止跟踪文件但不删除
+git commit -m "commit comments"   #提交所有更新过的文件
+git commit --amend 
+```
+
+## 查看提交历史
+
+```shell
+git log
+git log -p <file>    #指定文件的提交历史
+git blame <file>     #列表方式查看指定文件的提交历史
+```
+
+## 撤销
+
+```shell
+git reset --hard HEAD              #撤销工作目录中所有未提交文件的修改内容
+git checkout HEAD <file>           #撤销指定的未提交文件的修改内容
+git revert <commit>                #撤销指定提交
+```
+
+## 分支与标签
+
+```shell
+git branch                      #显示所有本地分支
+git branch <new-branch>
+git branch -d <branch>          #删除 branch
+git checkout <branch/tag>       #切换到指定分支或标签
+git switch <branch>
+git switch -c <new-branch>
+git tag                        #列出
+git tag <tagname>              #基于最新的提交创建标签
+git tag -d <tagname>           #删除
+
+```
+
+## 合并
+
+```shell
+git merge <branch> 
+git rebase <branch>
+```
+
+## 远程操作
+
+```shell
+git remote
+git remote -v                  #查看远程版本库信息
+git remote show <remote>       #查看远程版本库信息
+git remote add <remote> <url>  #添加远程版本库
+
+git fetch <remote>             #从远程库获取代码
+git pull <remote> <branch>     #下载代码并快速合并
+git push <remote> <branch>     #上传代码及快速合并
+git push <remote> :<branch/tag-name>
+git push --tags                        #上传所有标签
+```
+
+
+
+
+
+​            
+
+
+
+
+
+
 
 
 
