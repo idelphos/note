@@ -293,6 +293,10 @@ git clone git@github.com:michaelliao/gitskills.git # 将远程库克隆到本地
 
 # git 常用命令速查
 
+## git commands 图示
+
+![git-commands](https://github.com/idelphos/note/blob/master/git-commands.png)
+
 ## 创建新版本
 
 ```shell
