@@ -22,18 +22,23 @@ git的内容存储使用的是 SHA-1哈希算法, 来确保代码内容的完整
 ## git 一般工作流程
 
 1. 克隆 git 资源作为工作目录
-
 2. 在克隆的资源上添加或修改文件
-
 3. 如果他人修改了,可以更新资源
-
 4. 在提交前查看修改
-
 5. 提交修改
-
 6. 修改完成,若发现错误, 可以撤回提交并再次修改并提交
 
-   
+## git 专用名词
+
+workspace : 工作区, work directory
+
+Index/stage: 暂存区
+
+repository : 仓库(或者本地仓库)
+
+remote : 远程仓库
+
+
 
 
 
@@ -93,10 +98,16 @@ git config --global user.email "adelphos@msn.cn"
 git config  user.name              # 查看指定配置
 git config --list                  # 查看所有配置
 git config                         # git config 命令选项用法
-
+git config -e [--global]           # 编辑配置文件
 ```
 
+## .gitignore
 
+work directory中有些不想加入版本库管理的文件,可以把要忽略的文件名写入这个文件,git则会自动忽略这些文件. .gitignore 本身要放到版本库中.  
+
+忽略的文件名可以使用*通配文件名. 
+
+被忽略的文件, 若要加入版本库管理: git add -f 
 
 ## 配置 github远程仓库
 
@@ -131,9 +142,10 @@ $ git remote add mynote git@github.com:idelphos/note.git
 # 新建一个项目, 要么是 git init, 要么是git clone 的方式
 
 git init                 #$PWD 即为 working directory
-git init <directory>     #指定目录初始化为仓库
+git init <directory>     #指定目录或新建目录 初始化为仓库
 
 #clone 一个Github 上的Repository , 远程仓库 clone 到本地
+git clone [url]
 git clone <repo>
 git clone <repo> <directory>    #clone 仓库至本地指定目录
 git clone <repo> <new project name>
