@@ -371,6 +371,12 @@ git rebase <branch>
 ## 远程操作
 
 ```shell
+git clone
+git fetch
+git pull
+git push
+
+
 git remote
 git remote -v                  #查看远程版本库信息
 git remote show <remote>       #查看远程版本库信息
@@ -383,11 +389,94 @@ git push <remote> :<branch/tag-name>
 git push --tags                        #上传所有标签
 ```
 
+### git clone
+
+clone 支持多种协议  http(s), ssh, git , rsync , ftp ,本地文件协议
+
+```shell
+git clone <repo url>             #目录名与远程库同名
+git clone <repo url> <local dir> #也可以指定目录名
+git clone -o JQuery <url>        #使用 JQuery 替换默认远程主机名 origin
+
+#
+```
+
+### git remote
+
+```shell
+git remote        #列出所有远程库
+git remote -v     #可以查看远程库的网址
+git remote show 
+git remote add <repo name> <url>
+git remote rm <repo>
+git remote rename <old repo> <new repo>
+
+```
+
+### git fetch
+
+取回的更新,在本地主机上用"remote repo/ branch" 的形式读取
+
+```shell
+git fetch <remote repo>               #将远程仓库的更新,全部取回本地
+git fetch <remote repo> < branch >   #默认取回所有branch的更新
+
+git branch -r                         # 查看远程分支
+git branch -a                         # 查看所有分支(本地和远程)
+* master
+  remotes/origin/master
+  
+git checkout -b newBranch origin/master  #在取回的远程仓库的更新基础上,创建新分支
+git merge origin/master
+git rebase origin/master                 #在本地分支上合并远程分支
+```
+
+
+
+### git pull
+
+ git pull取回远程仓库某个分支的更新,再与本地的分支合并
+
+```shell
+git pull <remote repo> <remote branchName>:<local branchName>
+git pull origin next:master        #origin 中的 next分支与本地 master 分支合并
+git pull origin next               # 远程分支与当前分支合并
+
+相当于:
+git fetch origin
+git merge origin/next
+
+git 允许手动建立追踪关系
+git branch --set-upstream master origin/next
+git pull origin        #当前分支与远程仓库中的分支已经存在追踪关系
+git pull               # 当前分支只有一个追踪关系
+
+
+```
 
 
 
 
-​            
+
+### git push 
+
+git push 用于将本地分支的更新推送到远程主机, 命令格式与 git pull 相仿
+
+```shell
+git push <remote repo> <local branch>:<remote branch>
+git push origin master      # 存在追踪有关系时,省略<remote branch>
+
+git push origin :master     #删除远程分支master, 相当于推送空的本地分支
+git push origin --delete master 
+
+git push origin                  #当前分支与远程分支存在追踪关系
+git push                        #当前分支只有一个分支
+git push -u origin master       # -u 指定默认<remote repo>,之后的命令可以省略 origin
+
+git push --force origin         #远程版本比本地版本更新,推送失败, 需要先git pull合并,然后再 push. 但也可采用--force的办法强制推送,覆盖远程版本
+git push origin --tags          #git push 不推送 tags,需要使用--tags 来推送
+
+```
 
 
 
@@ -400,7 +489,7 @@ git push --tags                        #上传所有标签
 
 
 
-### refer to
+## refer to
 
 [pro git 中文版](http://git.oschina.net/progit/index.html)
 
