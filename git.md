@@ -124,7 +124,7 @@ $ pwd
 $ git init                    #所在目录就是执行一切文件操作的地方, 将目录变成仓库
 $ git remote add origin git@github.com:iadelphos/note.git  # 将 origin 和远程仓库联系起来
 git push -u origin master    # -u 首次推送 master 分支的所有内容
-git push origin master      #  推送master的最新修改
+git push origin master      #  推送master的最新修改,将当前分支 master 推送到远程仓库
 
 # git 远程仓库变更
 $ git remote
@@ -141,8 +141,14 @@ $ git remote add mynote git@github.com:idelphos/note.git
 ```shell
 # 新建一个项目, 要么是 git init, 要么是git clone 的方式
 
-git init                 #$PWD 即为 working directory
-git init <directory>     #指定目录或新建目录 初始化为仓库
+git init                  #初始化本地文件夹,指定目录下会创建仓库.git ,$PWD 即为 working directory
+git init <directory>      #指定目录或新建目录 初始化为仓库
+git status                #查询文件状态,仓库状态
+git add .                 #提交更改，先提交代码至缓存区,
+git commit -m "comment"   #实际提交代码
+git remote add bin git@github:idelphos/bin.git    　＃添加远程仓库，并指定名称bin,关联本地与远程仓库
+
+
 
 #clone 一个Github 上的Repository , 远程仓库 clone 到本地
 git clone [url]
@@ -150,13 +156,14 @@ git clone <repo>
 git clone <repo> <directory>    #clone 仓库至本地指定目录
 git clone <repo> <new project name>
 git clone https://github.com/zhchnchn/ZhchnchnTest.git
-
+git clone git@github.com:michaelliao/gitskills.git      # 将远程库克隆到本地
 
 
 
 # commands
 git add                  #将修改包含在即将提交的快照时在里时，执行
 git commit -m "comments"
+
 
 
 
@@ -224,6 +231,14 @@ git commit -am "commit commnets"      #-a 不经过 stage,直接提交所有更�
 ### git reset HEAD
 
 用于取消已缓存的内容(stage),即取消之前git add 的内容,不希望包含在下一次提交快照的缓存 
+
+```shell
+git diff HEAD -- readme.txt   #命令可以查看工作区和版本库里面最新版本的区别
+
+#版本回退与前滚 HEAD指向版本的当前版本 git reset --hard commit_id git log 　可以查看提交历史（的commit_id） git reflog 可以查看历史命令，以确定要回到未来的哪个版本
+```
+
+
 
 ### git rm
 
@@ -381,11 +396,6 @@ git log --decorate              #历史记录中,查看标签
 
 
 ```shell
-git push -u origin master  #第一次 -u 选项
-git push origin master     # 之后,用这个命令把本地 master 分支的最新修改推送到GitHub
-# 将当前分支 master 推送到远程仓库
-
-git clone git@github.com:michaelliao/gitskills.git # 将远程库克隆到本地
 
 ```
 
@@ -410,7 +420,7 @@ git init
 git status              #查看状态,是否有变更
 git diff                #查看具体变更内容
 git add .               #跟踪所有改动过的文件
-git add <file>          
+git add <file>          #可多次 add后,再 commit
 git mv <old> <new>
 git rm <file>
 git rm --cached <file>  #停止跟踪文件但不删除
@@ -498,7 +508,7 @@ git remote show
 git remote add <repo name> <url>
 git remote rm <repo>
 git remote rename <old repo> <new repo>
-
+git remote add origin [git@github.com](mailto:git@github.com):idelphos/onenote.git 本地仓库下运行此命令，是将本地仓库连接到远程仓库，与之相关联
 ```
 
 ### git fetch

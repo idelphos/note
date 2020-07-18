@@ -8,4 +8,12 @@
 
 - [ ] Shell 编码风格
 
+- [ ] markdown , typora
+
+- [ ] jupyterlab
+
+- [ ] improve reading speed
+
+  
+  
   
