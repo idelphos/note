@@ -32,4 +32,3 @@ git commit
 
 git diff HEAD -- readme.txt命令可以查看工作区和版本库里面最新版本的区别
 
-\###refer

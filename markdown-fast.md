@@ -85,6 +85,7 @@ table of contents
 2.  Internl link [heading](#1. Heading)
 3. reference link1  [hao123][id]
 4. reference link2 [baidu][]
+5.  文档间跳转: 路径
 
 
 

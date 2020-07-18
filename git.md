@@ -215,11 +215,55 @@ git diff HEAD
 
 git diff --stat   : 仅显示比较的摘要信息
 
+### git commit
+
+```shell
+git commit -am "commit commnets"      #-a 不经过 stage,直接提交所有更改到 repo
+```
+
+### git reset HEAD
+
+用于取消已缓存的内容(stage),即取消之前git add 的内容,不希望包含在下一次提交快照的缓存 
+
+### git rm
+
+删除库中的文件, 不能只在 work directory中手工删除. 需要 git rm <file> ,然后 commit.
+
+```shell
+git rm <file>     #从已跟踪的文件清单中移除
+git rm -f <file>  #删除之前,该文件已修改并已经存放到 stage, 需要使用-f 强制删除
+
+git rm --cache <file>  #把文件从 stage 区移除, 但仍保留在 work directory, commit后,此文件是 untrack 状态
+
+git rm -r *        #-r 可以递归删除
+
+```
+
+### git mv
+
+用于移动或重命名
+
+###  git log
+
+查看提交历史
+
+```shell
+git log --oneline
+git log --graph            #历史中的分支合并情况
+--reverse                  #逆向显示所有日志
+git log --author=Linus --oneline -5     # 显示指定作者的提交
+ git log --oneline --before={3.weeks.ago} --after={2010-04-18} --no-merges
+```
+
+
+
+
+
+
+
 
 
 ## 版本回退
-
-
 
 ```shell
 
@@ -254,8 +298,6 @@ e2a1a05 HEAD@{4}: commit: modified first
 8369306 (master) HEAD@{7}: commit: add licence file.
 4750d39 HEAD@{8}: commit (initial): ade READ.md file.
 
-
-
 ```
 
 ## 撤销修改
@@ -287,6 +329,52 @@ ade@ade-PC:~/MyProject$ git status
 # 2. git rm test.txt ; git commit -m "remove test.txt"   #  文件从版本库中也删除
 
 ```
+
+ 
+
+# branch
+
+```shell
+git branch                  # list branch
+git branch <branchName >    # creat branch
+
+#切换分支后,该分支最后提交的快照会替换当前工作目录的内容,所以多分支不需要多个目录
+git checkout <branchName>   
+git switch <branchName>      # switch to branch 
+git merge <branchName>        #将分支合并到当前分支
+git branch -d <branchName>    #合并完后,一般会删除分支
+
+
+```
+
+## 合并冲突
+
+合并包括文件添加, 移除, 修改
+
+```shell
+git merge change_site
+Auto-merging README
+CONFLICT (content): Merge conflict in README
+Automatic merge failed; fix conflicts and then commit the result.
+
+# 修改冲突文件后,
+git add  <file>
+git commit        # 合并分支完成
+
+```
+
+## tags
+
+```shell
+git tag -a v1.0                 #给最后提交的快照打一个带注解的标签
+git tag -a v0.9 5c70762         #使用 commit id,给历史提交打标签
+git tag                         #显示所有标签
+git tag -a tagname -m "runoob.com标签"   #指定标签信息
+
+git log --decorate              #历史记录中,查看标签
+```
+
+
 
 
 
@@ -482,7 +570,39 @@ git push origin --tags          #git push 不推送 tags,需要使用--tags 来�
 
 
 
+# git 服务器搭建
 
+
+
+```shell
+apt install git
+sudo groupadd git
+sudo useradd git -g git -m
+sudo passwd git
+
+#创建证书登录,导入用户公钥
+git@ade-PC:~$ mkdir .ssh ; chmod 755 .ssh
+git@ade-PC:~$ touch .ssh/authorized_keys
+git@ade-PC:~$ chmod 644 .ssh/authorized_keys 
+
+#初始化git仓库
+mkdir /home/gitrepo
+root@ade-PC:~# chown git:git /home/gitrepo
+root@ade-PC:~# cd /home/gitrepo/
+
+git@ade-PC:~$ cd /home/gitrepo/
+git@ade-PC:/home/gitrepo$ git init --bare runoob.git
+已初始化空的 Git 仓库于 /home/gitrepo/runoob.git/
+git@ade-PC:/home/gitrepo$ chown -R git:git runoob.git
+
+# ifconfig 查询本机ip 192.168.31.51
+
+# 上传公钥
+# 克隆仓库
+git clone git@192.168.31.51:/home/gitrepo/runoob.git 
+Cloning into 'runoob'...
+warning: You appear to have cloned an empty repository.
+```
 
 
 
