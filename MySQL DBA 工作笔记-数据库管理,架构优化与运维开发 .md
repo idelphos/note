@@ -10,11 +10,13 @@
 
 Percona server 是一款独立的数据库产品, 其可以与 MySQL 完全兼容. 可以在不更改代码的情况下将存储引擎更换成 XtraDB.
 
+Percona 自身开发 的一系列工具, 如 percona-tookit, xtracbackup, sysbench  与 percona server 兼容性肯定更好.
+
 ### MariaDB 
 
 10.0.9 版本起使用XtraDB 来代替 MySQL 的 InnoDB.
 
-### MySQL 版本历史
+### MySQL 官方版本
 
 5.1 Sun
 
@@ -34,11 +36,7 @@ Percona server 是一款独立的数据库产品, 其可以与 MySQL 完全兼�
 
 
 
-MySQL 8.0.21
 
-[V999318-01.zip](https://edelivery.oracle.com/osdc/softwareDownload?fileName=V999318-01.zip&token=SEJncDNQVkxnWEVsa3FIdjIvY0VNZyE6OiFmaWxlSWQ9MTA5MTU2OTgxJmZpbGVTZXRDaWQ9MTAwNzAzMiZyZWxlYXNlQ2lkcz0xMDA1Nzk2JnBsYXRmb3JtQ2lkcz0zNSZkb3dubG9hZFR5cGU9OTU3NjAmYWdyZWVtZW50SWQ9NjgxODk3NCZlbWFpbEFkZHJlc3M9eWp5dWFuQGNuLmlibS5jb20mdXNlck5hbWU9RVBELVlKWVVBTkBDTi5JQk0uQ09NJmxpY2Vuc2VDaWRzPTc3MzA3NCZjb3VudHJ5Q29kZT1DTiZkbHBDaWRzPTg4NTQyMSZzZWFyY2hTdHJpbmc9)![img](https://edelivery.oracle.com/osdc/adf/images/t.gif)MySQL Commercial Server 8.0.21 DEB for Debian 10 Linux x86 (64bit), 1017.3 MB
-
-[V999555-01.zip](https://edelivery.oracle.com/osdc/softwareDownload?fileName=V999555-01.zip&token=WG9GQTUwMHFVdkNHUGxSclFzSjYxQSE6OiFmaWxlSWQ9MTA5MTc5NDc4JmZpbGVTZXRDaWQ9MTAwNzYxOCZyZWxlYXNlQ2lkcz0xMDA1NzE0JnBsYXRmb3JtQ2lkcz0zNSZkb3dubG9hZFR5cGU9OTU3NjAmYWdyZWVtZW50SWQ9NjgxODk3NCZlbWFpbEFkZHJlc3M9eWp5dWFuQGNuLmlibS5jb20mdXNlck5hbWU9RVBELVlKWVVBTkBDTi5JQk0uQ09NJmxpY2Vuc2VDaWRzPTc3MzA3NCZjb3VudHJ5Q29kZT1DTiZkbHBDaWRzPTg4NTQyMSZzZWFyY2hTdHJpbmc9)![img](https://edelivery.oracle.com/osdc/adf/images/t.gif)MySQL Enterprise Monitor Service Manager 8.0.21 for Linux x86 (64-bit), 1.2 GB
 
 
 
@@ -64,5 +62,36 @@ MySQL技术内幕:InnoDB存储引擎
 
 # MySQL installation
 
+
+
+
+
+
+
+
+
+
 [download MySQL EE]: 
+
+常见三种安装方式: apt 包安装, 二进制包安装, 源码安装
+
+
+
+## 规范安装
+
+将软件与数据分离开,减少彼此之间的耦合,同时把数据目录, 日志目录分开存放, 以提高性能.
+
+软件安装目录: /usr/local/mysql
+
+数据目录  /data/mysql_port/  , 其下  data , log,  tmp 等子目录
+
+
+
+
+
+
+
+## Engines
+
+engine 的选择:  一 是否支持 transaction, 二 适用具体场景
 

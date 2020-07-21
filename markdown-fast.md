@@ -20,6 +20,8 @@
 
 ## 3. task list
 
+Opt + cmd + x  
+
 - [ ] a task list item 
 - [x] Completed
 
@@ -49,6 +51,10 @@
 
 ` single line code `
 
+
+
+following is code blacks
+
 ```
 function test() {
     console.log(" notice the blank line
@@ -67,7 +73,7 @@ function test() {
 
 ## 6. horizontal rules
 
-
+Opt + cmd + -
 
 ---
 
@@ -100,10 +106,17 @@ table of contents
 
 ## 10. table
 
+opt + cmd + t
+
+cmd + enter  追加新行
+
+
+
 | First Header | Second Header |
 | :----------: | ------------- |
 | Content Cell | Content cell  |
 | content cell | content cell  |
+|              |               |
 |              |               |
 
 
