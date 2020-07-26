@@ -2,10 +2,6 @@
 
 python -V  　＃--version
 
-
-
-
-
 ## function
 
 ### 1. print()

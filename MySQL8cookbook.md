@@ -6,6 +6,8 @@
 
 [MySQL example database](https://dev.mysql.com/doc/index-other.html)
 
+[MySQL 变量](https://blog.csdn.net/albertsh/article/details/103421646?utm_medium=distribute.pc_aggpage_search_result.none-task-blog-2~all~first_rank_v2~rank_v25-6-103421646.nonecase)
+
 
 
 [toc]
@@ -38,6 +40,33 @@ apt-get -f install       #若有依赖问题,修复依赖
 ```
 
 refer to [MySQL example database](https://dev.mysql.com/doc/index-other.html)  to install example database.
+
+
+
+## install MySQL Utilities Client
+
+MySQL Utilities  are a set of command-line utilities  that based on Python v2.6 currently.
+
+ They can be installed with MySQL Workbench or as a standalone package
+
+
+
+## install MySQL Workbench
+
+```shell
+# install from deb package Manually
+dpkg -i package.deb
+
+ mysql-workbench-commercial : 依赖: libc6 (>= 2.29) 但是 2.28.7-1+deepin 正要被安装
+                              依赖: libgcc-s1 (>= 3.4) 但无法安装它
+                              依赖: libssh-4 (>= 0.8.0) 但是它将不会被安装
+                              依赖: libstdc++6 (>= 9) 但是 8.3.0.2-1+deepin 正要被安装
+                              依赖: libzip5 (>= 0.10) 但无法安装它
+```
+
+
+
+ 
 
 # MySQL basic
 
@@ -1351,11 +1380,279 @@ mysql> GRANT ALL ON employees.* TO 'app_developer';
 
 
 
+# transaction
+
+transaction 事务具备的4个属性 ACID:
+
+1. **Atomicity**: 原子性, 事务中的 SQL 语句要么全部成功, 要么全部失败, 不存在部分更新
+2. **Consistency** :  一致性,事务只能以允许的方式改变受其影响的数据
+3. **Isolation**: 隔离性, 并发事务不应该导致数据库处于不一致的状态中,系统中每个事务都应该像唯一事务一样执行.任务事务都不应影响其它事务的存在.
+4. **Durability**: 持久性, 无论是否有 DB 或系统故障, 数据都会永久保存在磁盘上,并且不会丢失.
+
+
+
+DDL 语句是无法回滚的, 如 CREATE DATABASE, DROP DATABASE,  以及表或存储例程的 CREATE, DROP, ALTER .
+
+###### autocommit
+
+默认情况下 autocommit 的状态为 ON,  即单独的语句一旦被执行就会被提交, 除非该语句在 BEGIN...COMMIT 块中. 若 autocommit 为 OFF,则需要明确发出 COMMIT 来提交事务
+
+```mysql
+mysql> SET autocommit = 0;      #禁用 autocommit.
+```
+
+
+
+```mysql
+# 创建测试事务的环境
+mysql> CREATE DATABASE bank;
+mysql> USE bank;
+mysql> CREATE TABLE account(account_number varchar(10) PRIMARY KEY, balance INT);
+mysql> INSERT INTO account VALUES('A',600),('B',400);
+
+
+#执行事务  实现转账
+mysql> START TRANSACTION;
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> SELECT balance INTO @a.bal FROM account WHERE account_number = 'A';
+mysql> UPDATE account SET balance = @a.bal - 100 WHERE account_number = 'A';
+mysql> SELECT balance INTO @b.bal FROM account WHERE account_number = 'B';
+mysql> UPDATE account SET balance = @b.bal + 100 WHERE account_number = 'B';
+mysql> COMMIT;        #若更新过程中遇到错误,希望终止事务, 可以发送 ROLLBACK.
+
+
+# 执行事务  中间遇到错误,取消事务
+mysql> START TRANSACTION;
+mysql> SELECT balance INTO @a.bal FROM account WHERE account_number = 'A';
+mysql> UPDATE account SET balance = @a.bal - 100 WHERE account_number = 'A';
+mysql> SELECT balance INTO @b.bal FROM account WHERE account_number = 'C';
+Query OK, 0 rows affected, 1 warning (0.00 sec)
+
+mysql> show warnings;
++---------+------+-----------------------------------------------------+
+| Level   | Code | Message                                             |
++---------+------+-----------------------------------------------------+
+| Warning | 1329 | No data - zero rows fetched, selected, or processed |
++---------+------+-----------------------------------------------------+
+1 row in set (0.02 sec)
+
+mysql> SELECT @b.bal;
++--------+
+| @b.bal |
++--------+
+|  NULL  |
++--------+
+1 row in set (0.00 sec)
+
+mysql> ROLLBACK;      # 回滚事务
+
+```
+
+## SAVEPOINT
+
+使用保存点可以回滚到事务中的某些点, 而且无须终止事务. 可以使用savepoint 标识符为事务设置名称, 并使用 ROLLBACK TO 标识语句将事务回滚到指定的 savepoint , 而不终止事务.
+
+```mysql
+# 假定帐户 A 向多个帐户转账, 向其中一个帐户转账失败, 向其它帐户转账的操作也不应该回滚
+# 若不想使用 SAVEPOINT ,则可使用多个 transaction 代替.
+
+
+mysql> START TRANSACTION;
+Query OK, 0 rows affected (0.11 sec)
+
+mysql> SELECT balance INTO @a.bal FROM account WHERE account_number = 'A';
+Query OK, 1 row affected (0.14 sec)
+
+mysql> UPDATE account SET balance = @a.bal - 100 WHERE account_number='A'; 
+Query OK, 1 row affected (0.06 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> UPDATE account SET balance = balance + 100 WHERE account_number = 'B';
+Query OK, 1 row affected (0.00 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> SAVEPOINT transfer_to_b;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> SELECT balance INTO @a.bal FROM account WHERE account_number = 'A';
+Query OK, 1 row affected (0.01 sec)
+
+mysql> UPDATE account SET balance = @a.bal - 100 WHERE account_number='A'; 
+Query OK, 1 row affected (0.00 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> UPDATE account SET balance = balance + 100 WHERE account_number = 'C';
+Query OK, 0 rows affected (0.00 sec)
+Rows matched: 0  Changed: 0  Warnings: 0
+
+mysql> ROLLBACK TO transfer_to_b;
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> COMMIT;
+Query OK, 0 rows affected (0.01 sec)
+
+```
+
+## isolation level 
+
+隔离级别, 当两个或多个事务同时发生时, 隔离级别定义了一个事务与其它事务在资源或者数据修改方面的隔离程度.   可设置 tx_isolation 动态变量来更改隔离级别, 该变量具有会话级别的作用范围.
+
+SET @@transaction_isolation = 'READ-COMMITTED' ;    #修改隔离级别
+
+有四种类型的隔离级别  及分别产生的问题
+
+|     隔离级别     | 脏读 | 不可重复读 | 幻读 |
+| :--------------: | :--: | :--------: | :--: |
+| read uncommitted |  Y   |     Y      |  Y   |
+|  read committed  |      |     Y      |  Y   |
+| repeatable read  |      |            |  Y   |
+|   serializable   |      |            |      |
+
+
+
+### read uncommitted
+
+读取未提交, 也称 dirty read , 当前事务可以读取由另一个未提交的事务写入的数据.
+
+
+
+### read committed 
+
+读提交, 也称为 non-repeatable read, 当前事务只能读取另一个事务提交的数据. 
+
+
+
+### repeatable read
+
+可重复读取,
+
+
+
+### serializable
+
+序列化, 通过把选定的所有行锁定起来,序列化可以提供最高级别的隔离.  
+
+
+
+## lock
+
+**内部锁**: MySQL 在自身服务器内部执行内部锁, 以管理多个会话对表内容的争用.
+
+**外部锁** : MySQL 为客户会话提供选项来显示地获取表锁, 以阻止其他会话访问表.
+
+
+
+### 内部锁
+
+内部锁又为分行级锁 和 表级锁
+
+**行级锁**: 只有被访问的行会被锁定. 这允许通过多个会话同时进行写访问, 使其适用于多用户,高并发和 OLTP 的应用程序. InnoDB 支持行级锁.
+
+**表级锁**: MySQL 对 MyISAM, MEMORY 和 MERGE表使用表级锁,一次只允许一个会话更新这些表.这种锁定级别使得这些存储引擎更适用于只读的或以读取操作为主的或单用户的应用程序.
+
+### 外部锁
+
+可以使用LOCK TABLE 和 UNLOCK TABLE 来控制锁定.
 
 
 
 
-# MySQL backup & restore
+
+
+
+
+
+
+
+# backup
+
+备份方法主要有两种:
+
+**逻辑备份**: 它将所有 DATABASE, 表结构 ,数据 和存储例程导出到一组可以再次执行的 SQL 语句中,以重新创建 DATABASE 的状态.  备份工具有 mysqldump, mysqlpump, mydumper.
+
+**物理备份**: 它包含了DATABASE 用于存储所有数据库实体的系统的所有文件. 工具有 XtraBackup 和普通文件备份.
+
+建议从一个 slave(从) 服务器备份到 mount 于其上的文件中.
+
+
+
+## mysqldump
+
+mysqldump 是一个广泛使用的逻辑备份工具. 它提供了多种选项来包含或排除 database, 选择要备份的特定数据, 仅备份不包含数据的 schema, 或者只备份存储例程等.
+
+### options
+
+```shell
+-u <user_name>  -p<password>
+--all-databases           # 所有数据库 , 但不包括数据字典表中的存储例程,事件
+--routines
+--events
+--single-transaction
+# 执行备份前,将事务隔离模式更改为 repeatable read 模式,并执行START TRANSACTION 来提供一致的备份. 仅适用于诸如 InnoDB 之类的事务. START TRANSACTION执行时能保存 DB的一致状态而不阻塞任何应用程序.
+--master-data
+# 将服务器的二进制日志的位置输出到dump 文件. 
+
+--dump-slave
+# 备份始终在从服务器上进行. 要获取备份时主服务器的二进制日志位置,可以使用--dump-salve.
+
+--database
+
+--table
+--ignore-table = database.table
+
+--where   (LIMIT)     #过滤数据备份
+
+```
+
+## 完整备份
+
+```shell
+mysqldump --all-databases > dump.sql                      #完整备份所有数据库
+mysqldump --all-databases --routines --events >dump.sql #同时备份定义在数据字典表中的存储过程和事件
+```
+
+
+
+## 时间点恢复
+
+
+
+## 指定备份的 DB 和表
+
+```shell
+mysqldump --database employees > employees_backup.sql      #备份指定的 DB
+mysqldump --database employees --table employees> employees_table_backup.sql    #备份指定表
+
+
+mysqldump --database employees --ignore-table = employees.salary > employees_backup.sql  # 忽略指定表.
+
+```
+
+## 从远程服务器备份
+
+```shell
+mysqldump -all-databases --routines --events --triggers --hostname <remote_hostname>  > dump.sql
+
+```
+
+
+
+
+
+
+
+# restore
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1366,6 +1663,165 @@ mysql> GRANT ALL ON employees.* TO 'app_developer';
 
 
 # MySQL configuration
+
+MySQL有两种类型的参数(也是变量)
+
+**静态参数**: 重启 MySQL server 后才能生效
+
+**动态参数**: 可以在不重启MySQL server的情况下即时更改生效.
+
+
+
+参数(或变量)可通过以下几种上方式设置
+
+**配置文件**: /etc/my.cnf  , /etc/mysql/my.cnf 
+
+**启动脚本**: 直接将参数传递给 mysqld 进程, 启动脚本仅在调用服务器时才有效.
+
+ **SET命令配置动态变量**: SET 设定的变量仅持续到服务器重启时. 若想重启时保持更改持久化, 需要在配置文件中设置变量. 或者SET PERSIST 来使设定持久化.
+
+## 使用配置文件
+
+所有下 section 相关的参数都可以放在 section_name 下面
+
+```mysql
+[msyqld]                                #section name ,mysql server 读取
+<parameter_name> = <value>              #设置参数值
+[mysql]                                 #mysql命令行客户端                         
+<parameter_name> = <value>  
+[client]                                #所有连接的客户端,包括 mysql cli.    
+<parameter_name> = <value>  
+[mysqldump]                              #mysqldump 备份工具读取 
+<parameter_name> = <value>  
+[mysql_safe]                               
+<parameter_name> = <value>  
+[server]                               
+<parameter_name> = <value>  
+[msyqld_safe]                                 
+<parameter_name> = <value>  
+# MySQL 服务器启动脚本 mysqld_safe读取, 另外myqsld_safe 进程会从选项文件中的[mysqld]和[server]部分读取所有选项.
+# systemd 系统中, mysqld_safe 不会被安装.要配置启动脚本,需要在/etc/systemd/system/mysqld.service.d/override.conf 中设置值
+
+```
+
+### datadir
+
+MySQL server管理的数据存储在名为数据目录的目录下. 数据目录的每个子目录都是一个数据库目录. 一般包含如下几个数据库
+
+**mysql**: MySQL 系统数据库
+
+**performance_schema**: 提供用于在运行时检查服务器的内部执行情况的信息.
+
+**sys**: 提供一组对象, 帮助解释 performance_schema 信息
+
+**information_schema** : 
+
+另外数据目录中还包含日志文件, InnoDB 表空间 和 InnoDB 日志文件, SSL 和 RSA 密钥文件, mysqld 的 pid, 存储持久化全局系统变量设置的 mysqld-auto.cnf
+
+#### 更改 datadir
+
+```shell
+mysql> SHOW VARIABLES LIKE '%datadir%';
++---------------+-----------------+
+| Variable_name | Value           |
++---------------+-----------------+
+| datadir       | /var/lib/mysql/ |
++---------------+-----------------+
+
+systemctl stop mysql
+systemctl status mysql
+
+sudo mkdir -pv /data
+sudo chown -R mysql:mysql /data/
+
+sudo rsync -av /var/lib/mysql /data
+
+# Ubuntu 系统中,如果启用了 AppArmor, 则还需要配置Access Contro.
+vi /etc/apparmor.d/tunable/alias
+alias /var/lib/mysql/ -> /data/mysql/,
+
+systemctl restart apparmor
+
+vi /etc/mysql/mysql.conf.d/mysqld.cnf   
+datadir = /data/mysql
+
+systemctl start mysql
+mysql> SHOW VARIABLES LIKE '%datadir%' ; 
++---------------+--------------+
+| Variable_name | Value        |
++---------------+--------------+
+| datadir       | /data/mysql/ |
++---------------+--------------+
+
+#最后验证数据完整后,删除旧的数据目录
+rm -rf /var/lib/mysql
+
+
+```
+
+
+
+### innodb_fuffer_pool_size
+
+它决定 InnoDB 存储引擎可以使用多少内存来缓存内存中的数据和索引, 它是动态参数 , 可以即时修改生效
+
+### innoDB_buffer_pool_instances
+
+可以将 InnoDB 缓冲池划分为不同的区域, 以便不同的线程读取和写入缓存页面时减少争用,提高并发性能.InnoDB_buffer_pool_instances即将缓冲池分成的区域个数.
+
+### innodb_log_file_size
+
+重做日志空间的大小, 用于 DB 崩溃时重放已提交的事务. 重设值后,需要重启服务器才能生效.
+
+
+
+## 使用 global 和 session 变量
+
+MySQL 可以通过执行 SET 命令来设置参数
+
+**GLOBAL**: 全局变量,适应于所有连接
+
+**SESSION**:会话变量, 仅适用于当前连接(会话) 
+
+```mysql
+# 记录所有执行时间超过1秒的查询
+mysql> SET GLOBAL long_query_time = 1;
+
+# 持久化全局变量 
+mysql> SET PERSIST long_query_time = 1; 
+
+mysql> select * from performance_schema.persisted_variables;
++-----------------+----------------+
+| VARIABLE_NAME   | VARIABLE_VALUE |
++-----------------+----------------+
+| long_query_time | 1.000000       |
++-----------------+----------------+
+
+# 持久化的全局变量保存在两处
+# 1. 存储在数据目录中的mysqld-auto.cnf 中
+# 2. performance_schema.persisted_variables表中.
+
+
+mysql> RESET PERSIST long_query_time ;
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> RESET PERSIST ;   #清空 mysqld-auto.cnf 和performance_schema.persisted_variables
+
+# 只为此会话记录查询, 可以设置为 session变量
+mysql> SET [session] long_query_time = 1; 
+```
+
+## 启用脚本中使用参数
+
+使用启动脚本启动 MySQL, 而不是 通过 systemd 启动或修改配置文件中的参数. 可以在测试场景临时更改,将变量传递给脚本.
+
+```shell
+/usr/local/mysql/bin/mysqld --basedir = /usr/local/mysql --datadir = /usr/local/mysql/data 
+--plugin-dir = /usr/local/mysql/lib/plugin --user = mysql --log-error = /usr/local/mysql/data/centos7.err --pid-file=/usr/local/mysql/data/centos7.pid --init-file = /tmp/mysql-init & 
+# 服务器启动之前会执行--init-file 
+```
+
+
 
 ### server_id
 
@@ -1444,15 +1900,31 @@ MySQL 数据字典主要存放在以下几个数据库中:
 
 
 
-# bin_log
+# binlog
 
 二进制日志包含数据库的所有更改记录,包括数据和结构两方面. 它不记录 SELECT或 show 等不修改数据的操作. 运行带有二进制日志的服务器会带来性能影响. 日志能保证数据库出故障时数据的安全, 只有完整的事件或事务会被记录或回读
 
 利用二进制日志, 可以实现复制, 时间点恢复等功能.
 
+```mysql
+#相关命令
+# 
+
+SHOW MASTER LOGS;
+SHOW MASTER LOGS;       								 	#服务器所有日志
+SHOW MASTER STATUS;     								  #获取当前二进制日志位置
+PURGE BINARY LOGS TO 'binlog.000005';     #清除本日志之前的日志,但不清除binlog.000005'
+PURGE MASTER LOGS TO 'binlog.000005'; 
+RESET MASTER ;                            #清除所有日志
+```
 
 
-## 启用bin_log
+
+
+
+## 启用binlog
+
+当服务器启动或 刷新日志, 或者当前日志大小达到 max_binlog_size 时, 服务器都会在系统中创建一个新文件.
 
 ```mysql
 [mysqld] 
@@ -1461,18 +1933,334 @@ server_id = 100
 
 #log_bin 定义了日志 path 和 base name
 #日志位置都在 server1.index 中被维护
+# log1: /data/mysql/binlogs/server1.000001 ...
 
 systemctl restart msyql
 
 SHOW VARIABLES LIKE 'log_bin%';    # 验证是否创建二进制日志
-SHOW MASTER LOGS;
+SHOW MASTER LOGS;                  
 SHOW BINGARY LOGS;               # 显示服务器的所有 binlog
 
 SHOW MASTER STATUS;              #获取当前 binlog位置
 
+SET @@global.max_binlog_size = ....    #动态设置 max_binlog_size
 ```
 
 
+
+### 禁用会话的二进制日志
+
+有时候不希望将执行语句复制到其它服务器上. 可以使用以下命令来禁用该会话的二进制日志
+
+```mysql
+SET SQL_LOG_BIN = 0;
+SET SQL_LOG_BIN = 1;       #重新启用
+```
+
+### FLUSH LOGS
+
+关闭当前的二进制日志并打开一个新的二进制日志
+
+### 清理二进制日志
+
+自动清除日志的两个参数
+binlog_expire_logs_seconds
+expire_log_days 
+默认设置为0,表示禁止自动清除二进制日志 . 二个参数以不同的时间粒度控制自动清除的时间, 二个参数同时设置的效果是累加的. 
+
+```mysql
+mysql> PURGE BINARY LOGS TO 'binlog.000004'   #手动清除004之间的日志,但不删除binlog.000004
+mysql> RESET MASTER;            #删除所有日志
+```
+
+
+
+## binlog的格式
+
+可以使用兼具全局和会话范围作用域的动态变量 binlog_format 来设置格式 
+
+`SET GLOBAL binlog_format = 'STATEMENT'`
+
+binlog 可以设置成有三种格式
+
+**STATEMENT**:  记录实际的 SQL 语句
+
+**ROW**: 记录每行所做的更改, 默认格式
+
+**MIXED**:  当需要时,MySQL 会从 STATEMENT 切换到 ROW
+
+有些语句在不同的服务器上执行时可能会得到不同的结果. 如 UUID() 函数因服务器而异.这些语句被称为非确定性的语句, 基本这些语句的复制是不安全的. 这种情况,当设置为 MIXED 格式时, MySQL 会切换为基于行的格式.
+
+
+
+## mysqlbinlog
+
+mysqlbinlog 实用程序可以从二进制日志中提取内容,并将其应用到其它服务器.
+
+```mysql
+# 基于 STATEMENT的日志记录
+mysql> SET @@GLOBAL.BINLOG_FORMAT = 'STATEMENT';       #设置后重新连接,以使其生效
+mysql> quit 
+
+
+mysql> START TRANSACTION;
+mysql> USE employees;
+mysql> UPDATE salaries SET salary = salary * 2 WHERE emp_no < 10002;
+mysql> COMMIT;
+
+# 基于 ROW的日志记录
+mysql> SET @@GLOBAL.BINLOG_FORMAT = 'ROW'; 
+mysql> quit 
+
+mysql> START TRANSACTION;
+mysql> use employees;
+mysql> UPDATE salaries SET salary = salary/2 WHERE emp_no < 10002;
+mysql> COMMIT;
+
+# MIXED 格式日志记录
+mysql> SET @@GLOBAL.BINLOG_FORMAT = 'MIXED'; 
+mysql> quit
+
+mysql> START TRANSACTION;
+mysql> UPDATE salaries SET salary = salary * 2 WHERE emp_no < 10002;
+mysql> INSERT INTO departments VALUES('d010',UUID());
+mysql> COMMIT;
+
+
+```
+
+```mysql
+mysqlbinlog /data/mysql/binlog.000010 
+# at 523
+#200722 19:37:52 server id 1  end_log_pos 602 CRC32 0x09bc43ff 	Anonymous_GTID	last_committed=1	sequence_number=2	rbr_only=yes	original_committed_timestamp=1595417872431481	immediate_commit_timestamp=1595417872431481	transaction_length=807
+/*!50718 SET TRANSACTION ISOLATION LEVEL READ COMMITTED*//*!*/;
+# original_commit_timestamp=1595417872431481 (2020-07-22 19:37:52.431481 CST)
+# immediate_commit_timestamp=1595417872431481 (2020-07-22 19:37:52.431481 CST)
+/*!80001 SET @@session.original_commit_timestamp=1595417872431481*//*!*/;
+/*!80014 SET @@session.original_server_version=80021*//*!*/;
+/*!80014 SET @@session.immediate_server_version=80021*//*!*/;
+SET @@SESSION.GTID_NEXT= 'ANONYMOUS'/*!*/;
+# at 602
+#200722 19:37:45 server id 1  end_log_pos 691 CRC32 0xb4e3df85 	Query	thread_id=15	exec_time=0	error_code=0
+SET TIMESTAMP=1595417865/*!*/;
+BEGIN
+/*!*/;
+# at 691
+#200722 19:37:45 server id 1  end_log_pos 753 CRC32 0xc7d17ae8 	Table_map: `employees`.`salaries` mapped to number 142
+# at 753
+#200722 19:37:45 server id 1  end_log_pos 1299 CRC32 0x6a0a0628 	Update_rows: table id 142 flags: STMT_END_F
+
+BINLOG '
+CSUYXxMBAAAAPgAAAPECAAAAAI4AAAAAAAEACWVtcGxveWVlcwAIc2FsYXJpZXMABAMDCgoAAAEB
+AOh60cc=
+CSUYXx8BAAAAIgIAABMFAAAAAI4AAAAAAAEAAgAE//8AEScAAKrVAQDahA/ahg8AEScAANXqAADa
+hA/ahg8AEScAACzlAQDahg/ZiA8AEScAAJbyAADahg/ZiA8AEScAADQEAgDZiA/Zig8AEScAABoC
+AQDZiA/Zig8AEScAAEgIAgDZig/ZjA8AEScAACQEAQDZig/ZjA8AEScAACILAgDZjA/Zjg8AEScA
+AJEFAQDZjA/Zjg8AEScAAAwrAgDZjg/YkA8AEScAAIYVAQDZjg/YkA8AEScAALpEAgDYkA/Ykg8A
+EScAAF0iAQDYkA/Ykg8AEScAACxMAgDYkg/YlA8AEScAABYmAQDYkg/YlA8AEScAALRRAgDYlA/Y
+lg8AEScAANooAQDYlA/Ylg8AEScAAKhYAgDYlg/XmA8AEScAAFQsAQDYlg/XmA8AEScAABpxAgDX
+mA/Xmg8AEScAAI04AQDXmA/Xmg8AEScAAAJ5AgDXmg/XnA8AEScAAIE8AQDXmg/XnA8AEScAAJJ5
+AgDXnA/Xng8AEScAAMk8AQDXnA/Xng8AEScAAGqXAgDXng/WoA8AEScAALVLAQDXng/WoA8AEScA
+APCYAgDWoA/Wog8AEScAAHhMAQDWoA/Wog8AEScAANKYAgDWog/WpA8AEScAAGlMAQDWog/WpA8A
+EScAAPy2AgDWpA8hHk4AEScAAH5bAQDWpA8hHk4oBgpq
+'/*!*/;
+# at 1299
+#200722 19:37:52 server id 1  end_log_pos 1330 CRC32 0xa6da91aa 	Xid = 171
+COMMIT/*!*/;
+# at 1330
+#200722 19:42:11 server id 1  end_log_pos 1409 CRC32 0xc2f1cd78 	Anonymous_GTID	last_committed=2	sequence_number=rbr_only=no	original_committed_timestamp=1595418131133884	immediate_commit_timestamp=1595418131133884	transaction_length=514
+# original_commit_timestamp=1595418131133884 (2020-07-22 19:42:11.133884 CST)
+# immediate_commit_timestamp=1595418131133884 (2020-07-22 19:42:11.133884 CST)
+/*!80001 SET @@session.original_commit_timestamp=1595418131133884*//*!*/;
+/*!80014 SET @@session.original_server_version=80021*//*!*/;
+/*!80014 SET @@session.immediate_server_version=80021*//*!*/;
+SET @@SESSION.GTID_NEXT= 'ANONYMOUS'/*!*/;
+# at 1409
+#200722 19:40:56 server id 1  end_log_pos 1510 CRC32 0x1fcecf90 	Query	thread_id=16	exec_time=0	error_code=0
+SET TIMESTAMP=1595418056/*!*/;
+BEGIN
+/*!*/;
+# at 1510
+#200722 19:40:56 server id 1  end_log_pos 1666 CRC32 0xb094ab21 	Query	thread_id=16	exec_time=0	error_code=0
+SET TIMESTAMP=1595418056/*!*/;
+UPDATE salaries SET salary = salary * 2 WHERE emp_no < 10002
+/*!*/;
+# at 1666
+#200722 19:41:24 server id 1  end_log_pos 1735 CRC32 0xbecbfd7d 	Table_map: `employees`.`departments` mapped to number 138
+# at 1735
+#200722 19:41:24 server id 1  end_log_pos 1813 CRC32 0x3343c3e3 	Write_rows: table id 138 flags: STMT_END_F
+
+BINLOG '
+5CUYXxMBAAAARQAAAMcGAAAAAIoAAAAAAAMACWVtcGxveWVlcwALZGVwYXJ0bWVudHMAAv4PBP4Q
+oAAAAgP8/wB9/cu+
+5CUYXx4BAAAATgAAABUHAAAAAIoAAAAAAAEAAgAC/wAEZDAxMCQ0NTM5ZjAzOC1jYzEwLTExZWEt
+ODU1MS0wMDBjMjlkMDJmYzbjw0Mz
+'/*!*/;
+# at 1813
+#200722 19:42:11 server id 1  end_log_pos 1844 CRC32 0x2b26012d 	Xid = 207
+COMMIT/*!*/;
+SET @@SESSION.GTID_NEXT= 'AUTOMATIC' /* added by mysqlbinlog */ /*!*/;
+DELIMITER ;
+# End of log file
+/*!50003 SET COMPLETION_TYPE=@OLD_COMPLETION_TYPE*/;
+/*!50530 SET @@SESSION.PSEUDO_SLAVE_MODE=0*/;
+
+
+```
+
+> 日志内容说明
+>
+> 第一行中 # at 后面的数字表示二进制日志文件中事件的起始位置(文件偏移量)
+>
+> 第二行 以语句在服务器上执行的时间开始 , 后面还有
+>
+> **server id**: 产生该事件的 server 的 server_id
+>
+> **end_log_pos**: 下一个事件的开始位置
+>
+> **thread_id**: 执行该事件的线程 id
+>
+> **exec_time**: master server上表示执行事件时间;从服务器上表示与主服务器的开始执行时间之间的差值,即执行滞后的时间指标
+>
+> **error_code**:事件执行结果,0表示没有错误.
+>
+> ### 1. 基于STATEMENT的复制
+>
+> at 523 , 在二进制日志中记录了相同的语名,另外会话变量也被保存在二进制日志中,以在从库上复制相同的行为
+>
+> ### 2. 基于ROW的复制
+>
+> 会以二进制格式对事行(不是语句) 进行保存, 而且二进制格式不能读取
+>
+> ### 3. MIXED 的复制
+>
+> 使用MIXED格式时,UPDATE被记录为 SQL 语句,而 INSERT 语句以基于 ROW的格式被记录,因为 INSERT中有非确定性的 UUID()函数
+
+>提取的日志可以被传送给 MySQL 以回放事件. 也可以保存到日志然后再执行.
+>
+>```shell
+>mysqlbinlog /data/mysql/binlog.000010 | mysql -f -h <remote_host> -u <username> -p 
+># -f force选项,出现错误时可以继续执行. 之后可以查找错误并手动修复数据.
+>
+>mysqlbinlog /data/mysql/binlog.000010 > binlog.10_extract
+>
+>cat binlog.10_extract | mysql mysql -f -h <remote_host> -u <username> -p 
+>
+>
+>```
+
+### 基于时间和位置抽取日志
+
+```shell
+# --start-datetime --stop--datetime 选项指定
+mysqlbinlog /data/mysql/binlog.000010 --start-datetime = "2017-08-19 00:00:01" --stop-datetime = "2017-08-19 12:17:00" > binlog_extract
+
+#使用时间窗口的缺点是,会失去灾难发生那一刻的事务, 避免这种情况,可以在二进制日志中使用事件的文件偏移量
+# 一个连续的备份会保存它已完成备份的所有 binlog文件的偏移量. 备份恢复后,必须从备份的偏移量中提取binlog
+
+
+mysqlbinlog /data/mysql/binlog.000010 --start-position = 471 --stop-position = 1793 > binlog_extract
+#确保DROP DATABASE命令在提取的binlog 中不再出现.
+
+```
+
+### 基于 DATABASE提取日志
+
+--database 选项可以过滤特定数据库的事件
+
+```mysql
+mysqlbinlog /data/mysql/binlog.000010 --database = employees > binlog_extract
+```
+
+### 提取 ROW 事件显示
+
+默认情况下, 基于 ROW 的redo log显示为二进制格式. -v --verbose 选项可以查看行信息, ROW 事件的二进制格式以注释的伪 SQL 语句的形式显示, 其中的行以### 开始
+
+```mysql
+mysqlbinlog /data/mysql/binlog.000010 --start-position = 471 --stop-position = 1793 --verbose
+
+#若只想查看伪 SQL 语句,可以指定 --base64-output="decode-rows" --verbose 选项
+
+```
+
+### 重写数据库名称
+
+--write-db = "from_name-> to_name"
+
+```shell
+mysqlbinlog /data/mysql/binlog.000010 --start-position = 471 --stop-position = 1793 --rewirte-db = "employees->employees_dev"
+
+# 输出的日志则可以用于不名名称的数据库
+
+```
+
+### 其它选项
+
+```mysql
+# --disable-log-on 恢复二进制的过程中, 可以禁用创建binlog.
+mysqlbinlog /data/mysql/binlog.000010 --start-position = 471 --stop-position = 1793 --disable-log-in > binlog_restore
+
+```
+
+### SHOW BINLOG EVENTS
+
+```mysql
+# 也可以用来显示事件
+SHOW BINLOG EVENTS IN 'binlog.000010' LIMIT 10;
+SHOW BINLOG EVENTS IN 'binlog.000010' FROM 123 LIMIT 2,1;  #指定位置和偏移量
+
+```
+
+
+
+## 忽略要写入binlog的数据库
+
+```mysql
+[mysqld]
+binlog_do_db = db1
+binlog_do_db = db2
+
+#修改配置需要重启 MysQL 生效
+#binlog_do_db  从基于STATEMENT的日志记录更改为基于 ROW的日志记录.
+
+--binlog-ingnore-db = db_name 选项指定不写入二进制日志的数据库
+```
+
+## 迁移 binlog
+
+binlog 占用空间会越来越多, 可能需要更改 binlog位置, 迁移 binlog. 单独更改 log_bin是不够的, 必须迁移所有binlog 日志并在索引文件中更新位置. mysqlbinlogmove 工具可以简化任务.
+
+mysqlbinlogmove 需要安装MySQL 工具集
+
+```shell
+
+
+systemctl stop mysql
+
+root@ade-PC:~# mkdir /binlogs
+root@ade-PC:~# chown --reference=/data/mysql /binlogs
+root@ade-PC:~# chmod --reference=/data/mysql /binlogs
+
+mysqlbinlogmove --bin-log-basename=binlog --binlog-dir=/data/mysql /binlogs
+
+```
+
+
+
+
+
+
+
+
+
+| 年份 | 532分以上人数 | 理科一本线 |
+| :--: | :-----------: | :--------: |
+| 2020 |     53792     |    521     |
+| 2019 |     38223     |    505     |
+| 2018 |     41605     |    512     |
+| 2017 |     28243     |    484     |
+| 2016 |     40868     |    512     |
+| 2015 |     33641     |    510     |
 
 
 

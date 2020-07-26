@@ -39,11 +39,13 @@ Opt + cmd + x
 >
 > 
 >
-> > 区块嵌套 
+> > 1. 块引用可以嵌套 
+> > 2. 使用空行标识开始和结束
+> > 3. 块引用应用的位置广泛, 如列表中可以使用块引用
+> > 4. 块引用中支持其它markdown 格式, 如列表... ... 
+> > 5. 块引用一般用于注释
 > >
-> > 区块中可以使用列表
-> >
-> > 列表中也可以使用区块
+> > 
 
 
 
@@ -124,3 +126,7 @@ cmd + enter  追加新行
 
 
  
+
+## refer
+
+[github markdown](https://guides.github.com/features/mastering-markdown/)
