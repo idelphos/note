@@ -1,7 +1,7 @@
 #!/bin/bash
 
 git add .
-git commit -am "auto save from mac - $(date)"
+git commit -am "$(date "+%F %H:%M:%S") $* "
 git push origin master
 
 
