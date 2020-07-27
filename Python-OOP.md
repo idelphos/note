@@ -618,6 +618,14 @@ def sum_of_squares(nums):
 
 ```
 
+# 内置函数
+
+### map()
+
+map(function, iterable, ...)
+
+
+
 
 
 # 流程控制
@@ -902,6 +910,236 @@ and 与       #boolean operator
 # 使用 del 删除
 
 test_dict = {1:'name', 2:'age', 3:'height', 4:'weight'}
+
+```
+
+
+
+## comprehensions
+
+python的推导式，又称解析式，是python独有特性。推导式是可以从一个数据序列构建另一个新的数据序列的结构体。 其构建过程比使用循环来构建效率更高。Python的推导式有三种:
+
+- [列表推导式](###list comprehension)
+- [字典推导式](###dict comprehension)
+- [集合推导式](###set comprehension)
+
+
+
+### list comprehension
+
+列表推导式提供了从序列创建列表的简单途径 .通常应用程序将一些操作应用于某个序列的每个元素, 用其获得的结果 作为生成新列表的元素, 或者根据确定的判定条件创建子序列.
+
+若希望表达式推导出一个元组, 将[ ] 换成( ) 即可.
+
+列表推导式形式: 一个表达式，后面跟一个 `for` 子句，然后是零个或多个 `for` 或 `if` 子句
+
+ list1 = [**out_exp_res** for **out_exp** in **iterable** if out_exp == 2]
+  out_exp_res:　　           列表生成元素表达式，可以是有返回值的函数。
+  for out_exp in iterable  迭代iterable将out_exp传入out_exp_res表达式中。
+  if out_exp == 2：　　    **可选项** 根据条件过滤序列值可以。
+
+```python
+[(x, y) for x in [1,2,3] for y in [3,1,4] if x != y]
+
+#等价于, for 和 if 的顺序也是相同的.
+for x in [1,2,3]:
+     for y in [3,1,4]:
+         if x != y:
+             combs.append((x, y))
+
+---------------------------------------------------------------------
+multiples = [i for i in range(30) if i % 3 is 0]
+print(multiples)
+# Output: [0, 3, 6, 9, 12, 15, 18, 21, 24, 27]
+---------------------------------------------------------------------
+def squared(x):
+    return x*x
+multiples = [squared(i) for i in range(30) if i % 3 is 0]
+print multiples
+#  Output: [0, 9, 36, 81, 144, 225, 324, 441, 576, 729]
+---------------------------------------------------------------------
+vec1 = [2, 4, 6]
+vec2 = [3, 5, 7]
+[ [x, x ** 2] for x in vec1 ]
+[x*y for x in vec1 for y in vec2]
+[x+y for x in vec1 for y in vec2]
+[vec1[i]*vec2[i] for i in range(len(vec1))]
+
+
+# 列表推导式可以使用复杂的表达式和嵌套函数
+[str(round(355/113,i)) for i in range(1,6)]
+
+```
+
+#### 嵌套的列表推导式
+
+列表推导式中的初始表达式可以是任何表达式, 包括另一个列表推导式, 即构成嵌套的列表推导式.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### dict comprehension
+
+```python
+ # 字典推导式
+{x : x**2 for x in (2, 4, 6) }   
+
+d = {i:i+1 for i in range(4)}
+print(d)
+g = {i:j for i,j in zip(range(1,6),'abcde')}
+print(g)
+f = {i:j.upper() for i, j in zip(range(1, 6),'abcde')}
+print(f)
+
+{0: 1, 1: 2, 2: 3, 3: 4}
+{1: 'a', 2: 'b', 3: 'c', 4: 'd', 5: 'e'}
+{1: 'A', 2: 'B', 3: 'C', 4: 'D', 5: 'E'}
+
+```
+
+
+
+
+
+### set comprehension
+
+
+
+```python
+squared = {x**2 for x in [1, 1, 2]}
+print(squared)
+# Output: set([1, 4])
+
+a= {x for x in 'abrddfsdf' if x not in 'abc'}
+
+```
+
+
+
+# algorithm
+
+## 线性查找
+
+线性查找指按一定的顺序检查数组中每一个元素，直到找到所要寻找的特定值为止
+
+```python
+def linear_search(arr,data):
+    '''在数组 arr中查找指定值 data,找到返回找到的第一个元素的索引. 没找到返回-1'''
+    for i in range(0,len(arr)-1):
+        if arr[i] == data:
+            return i
+    return -1
+
+arr_eg = [x**2 + 3 for x in range(0,30) if x % 2 != 0]
+print(f'The array is {arr_eg}')
+
+result = linear_search(arr_eg, 228)
+if result == -1:
+    print('data is not existent.')
+else:
+    print(f'the data is arr_ge[{result}] =',arr_eg[result])
+ 
+```
+
+## 二分查找
+
+　二分查找又称折半查找，优点是比较次数少，查找速度快，平均性能好　　
+
+　二分查找即搜索过程从数组的中间元素开始,如果中间元素正好是要查找的元素,则搜索过程结束;如果中间元素大于或小于要查找元素,则在小于或大于中间元素的那一半进行搜索,而且跟开始一样从中间元素开始比较. 如果在某一步骤数组为空,则代表找不到.这种算法每一次比较都会使搜索范围缩小一半.
+
+适用条件:
+二分查找是有条件的，首先是有序的，其次因为**二分查找操作的是下标**，所以要求是顺序
+最优时间复杂度：O(1), 最坏时间复杂度：O(logn)
+
+```python
+
+# 在指定数组索引范围内查找 值 data.
+
+def re_binary_search(arr, low, high, data):
+    '''二分查拉递归算法'''
+    
+    # 计算中间元素位置
+    mid = low + (high - low)//2
+    
+    if arr[mid] == data:
+        return mid
+    
+    if high >= low:
+        if arr[mid] < data:
+            return re_binary_search(arr,mid + 1,high,data)
+        else:
+            return re_binary_search(arr, low, mid -1, data)
+    
+    return -1
+
+
+def binary_search(arr, low, high, data):
+    '''非递归算法'''
+    mid = low +(high - low)//2
+    
+   
+    
+    while low <= high:
+        if arr[mid] == data:
+            return mid
+        
+        if arr[mid] < data:
+            low = mid + 1
+            mid = low +(high - low)//2
+        else:
+            high = mid -1
+            mid = low +(high - low)//2
+            
+    return -1
+     
+    
+# 测试函数
+arr_eg = [x**2 + 3 for x in range(0,30) if x % 2 != 0]
+print(f'The array is {arr_eg}')
+
+
+
+# result = re_binary_search(arr_eg, 0 , len(arr_eg) - 1, 844)
+result = binary_search(arr_eg, 0, len(arr_eg) - 1, 732)
+
+if result == -1:
+    print('data is not existent.')
+else:
+    print(f'the data is arr_ge[{result}] =',arr_eg[result])
+
 
 ```
 
