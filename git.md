@@ -1,8 +1,8 @@
-#git
+# git
 执行git init的那个目录是working directory,而.git是版本库repository
 
 
-###[install Git on RHEL](http://git.oschina.net/progit/1-%E8%B5%B7%E6%AD%A5.html#1.4-%E5%AE%89%E8%A3%85-Git)
+### [install Git on RHEL](http://git.oschina.net/progit/1-%E8%B5%B7%E6%AD%A5.html#1.4-%E5%AE%89%E8%A3%85-Git)
 1. `yum install git`
 2.  install from source code
 
@@ -19,7 +19,7 @@ $make all doc
 git --version   verfiy the installation
 >  
 
-###配置Ｇit
+### 配置Ｇit
 - /etc/gitconfig           系统级配置文件git config --system
 - ~/.gitconfig             用户级配置文件，适用于该用户下所有仓库配置　git config --global
 - .git/config              仅针对当前仓库配置有效  
@@ -79,7 +79,7 @@ git push -u origin master
 ```
 
 
-###known git issue
+### known git issue
 fatal: Unable to find remote helper for 'https'
 无权限执行git-remote-https
 
