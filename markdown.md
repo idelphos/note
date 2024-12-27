@@ -87,7 +87,7 @@ _   底线
 3. order list 3
 
 
-###link,image,mailto
+### link,image,mailto
 ```
   [linkName](URL)      <a href="URL">linkName</a>
   ![]()                <img src="URL">
@@ -101,7 +101,7 @@ Email: <adelphos@msn.cn>
 
 
 
-###table
+### table
 dog | bird | cat
 --- |:----|:---:
 foo | foo | foo
@@ -115,7 +115,7 @@ baz | baz | baz
 | zebra stripes | are neat      |    $1 |
 
 
-###refer
+### refer
 [Mahua](http://mahua.jser.me/) markdown编辑器  
 [markdown 语法说明](http://wowubuntu.com/markdown/index.html#autoescape)  
 [gedit-markdown](https://github.com/jpfleury/gedit-markdown)
