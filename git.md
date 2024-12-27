@@ -31,13 +31,13 @@ git config --global user.email "adelphos@msn.cn"
 git config --list                 ＃查看配置
 ```
 
-###配置[github](https://github.com)
+###  配置[github](https://github.com)
 ```
 #setting 里添加本地ssh public key
 ssh -T git@github.com    #进行测试
 git remote -v       #查看使用的传输协议，不要使用https
 
-#设置成ssh方式
+# 设置成ssh方式
 git remote rm origin
 git remote add origin git@github.com:username/repository.git
 git push -u origin master
@@ -90,7 +90,7 @@ yum install libcurl-devel
 
 ----
 
-###Git快速入门
+### Git快速入门
 ```
 git help <verb>
 git <verb> --help
