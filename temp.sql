@@ -236,3 +236,5 @@ mysql> select * from v_selectproduct;
 +----+--------+
 
 
+
+
