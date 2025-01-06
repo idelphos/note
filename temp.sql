@@ -235,6 +235,40 @@ mysql> select * from v_selectproduct;
 |  4 | pear   |
 +----+--------+
 
+CREATE TABLE t_group(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name varchar(10)
+);
+
+CREATE TABLE t_student(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(20),
+    sex ENUM('W','M'),
+    group_id INT,
+    CONSTRAINT fk_group_id FOREIGN KEY (group_id) REFERENCES t_group(id) 
+);
+
+
+INSERT INTO t_student(name,sex,group_id)
+   VALUES (cjgong1,'M',1),
+          (cjgong1,'M',1),
+          (cjgong1,'M',1),
+          (cjgong1,'M',1),
+          (cjgong1,'M',1),
+          (cjgong1,'M',1),
+          (cjgong1,'M',1),
+          (cjgong1,'M',1),
+          (cjgong1,'M',1),
+
+          
+
+
+
+
+
+
+
+
 
 
 
