@@ -1,3 +1,7 @@
 {
-    "hediet.vscode-drawio.globalVars": {}
+    "hediet.vscode-drawio.globalVars": {},
+    "marscode.codeCompletionPro": {
+        "enableCodeCompletionPro": true
+    },
+    "marscode.enableInlineCommand": true
 }
