@@ -1,0 +1,5 @@
+        temp_node.get_next() = self.head.get_next()
+        self.head.get_next() = temp_node
+
+                temp_node.get_next() = pre_point.get_next()
+        pre_point.get_next() = temp_node
