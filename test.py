@@ -1,2 +1,3 @@
 import sys
-print(sys.argv)
+import os
+os.getcwd()
