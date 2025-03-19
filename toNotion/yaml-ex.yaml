@@ -1,0 +1,79 @@
+---
+
+- name: configure webserver with Nginx and TLS
+  hosts: webservers
+  become: true
+  gather_facts: false
+
+  vars:
+    tls_dir: /etc/nginx/ssl/
+    key_file: nginx.key
+    cert_file: nginx.crt
+    conf_file: /etc/nginx/sites-available/default
+    server_name: localhost
+  
+  handlers:
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
+  
+  tasks:
+    - name: ensure nginx is installed
+      package:
+        name: nginx
+        state: present
+        update_cache: true
+      notify: restart nginx
+    
+    - name: Create direcotries for TLS certificates
+      file:
+        path: "{{ tls_dir }}"
+        state: directory
+        mode: 0750
+      notify: restart nginx
+    
+    - name: Copy TLS files
+      copy:
+        src: "{{ item }}"
+        dest: "{{ tls_dir }}"
+        mode: 0600
+      loop:
+        - "{{ key_file }}"
+        - "{{ cert_file }}"
+      notify: restart nginx
+    
+    - name: Manage nginx config template
+      template:
+        src: nginx.conf.j2
+        dest: "{{ conf_file }}"
+      notify: restart nginx
+    
+    - name: Enable configuration
+      file:
+        src: "{{ conf_file }}"
+        dest: /etc/nginx/sites-enabled/default
+        state: link
+    
+    - name: Install home page
+      template:
+        src: index.html.j2
+        dest: /var/www/html/index.html
+        mode: '0644'
+    
+    - name: Restart nginx
+      meta: flush_handlers
+    
+    - name: "Test it! https://localhost:8443/index.html"
+      delegate_to: localhost
+      become: false
+      uri:
+        url: 'https://localhost:8443/index.html'
+        validate_certs: false
+        return_content: true
+      register: this
+      failed_when:" 'Running on ' not in this.content"
+      tags:
+        - test
+...
+    
